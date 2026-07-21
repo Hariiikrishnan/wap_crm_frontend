@@ -56,7 +56,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { name: 'CRM Pipeline', href: '/crm', icon: Kanban },
     { name: 'WhatsApp CRM', href: '/whatsapp', icon: MessageCircle, badge: unreadChatsCount > 0 ? unreadChatsCount : undefined },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
-    { name: 'Billing', href: '/billing', icon: CreditCard },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 

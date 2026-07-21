@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Script from 'next/script';
 import { useAuthStore } from '@/store/useAuthStore';
 import {
   Building2,
@@ -58,10 +59,41 @@ export default function OnboardingWizard() {
       setCurrentStep(3);
     } else if (currentStep === 3) {
       setLoading(true);
-      setTimeout(() => {
+      
+      const options = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_xyz', // Assuming user provides this
+        amount: "100", // 1 Rs
+        currency: "INR",
+        name: "WAP CRM",
+        description: "Onboarding Payment",
+        handler: function (response: any) {
+          // Success
+          setLoading(false);
+          setCurrentStep(4);
+          
+          // Optionally notify backend here about payment success
+        },
+        prefill: {
+          name: user?.name,
+          email: user?.email,
+        },
+        theme: {
+          color: "#22c55e"
+        }
+      };
+      
+      try {
+        const rzp = new (window as any).Razorpay(options);
+        rzp.open();
+        // Setup listener for modal close to stop loading
+        rzp.on('payment.failed', function () {
+          setLoading(false);
+        });
+      } catch (err) {
+        console.error("Razorpay SDK not loaded", err);
         setLoading(false);
-        setCurrentStep(4);
-      }, 1500);
+        setCurrentStep(4); // Fallback for dev without script
+      }
     }
   };
 
@@ -86,6 +118,7 @@ export default function OnboardingWizard() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col justify-between py-12 px-4 sm:px-6 lg:px-8">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" />
       {/* Brand Header */}
       <div className="max-w-md mx-auto w-full flex items-center justify-center gap-2 font-bold text-xl mb-4">
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">

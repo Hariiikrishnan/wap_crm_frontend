@@ -12,11 +12,13 @@ import {
   Save,
   Lock,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  CreditCard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import BillingPage from './billing/page';
 
-type Tab = 'profile' | 'company' | 'integrations' | 'notifications' | 'theme';
+type Tab = 'profile' | 'company' | 'integrations' | 'notifications' | 'theme' | 'billing';
 
 export default function SettingsPage() {
   const { user, updateCompanyDetails } = useAuthStore();
@@ -92,6 +94,7 @@ export default function SettingsPage() {
     { id: 'integrations' as Tab, label: 'Lead Integrations', icon: Link2 },
     { id: 'notifications' as Tab, label: 'Notification Settings', icon: Bell },
     { id: 'theme' as Tab, label: 'Portal Theme', icon: Paintbrush },
+    { id: 'billing' as Tab, label: 'Billing & Subscriptions', icon: CreditCard },
   ];
 
   return (
@@ -123,8 +126,9 @@ export default function SettingsPage() {
         </aside>
 
         {/* Configuration Body Content */}
-        <div className="flex-1 bg-card border border-border rounded-xl p-6 shadow-xl">
-          <form onSubmit={handleSaveSettings} className="space-y-6">
+        <div className="flex-1 bg-card border border-border rounded-xl p-6 shadow-xl overflow-y-auto">
+          {activeSubTab !== 'billing' ? (
+            <form onSubmit={handleSaveSettings} className="space-y-6">
             
             {/* TAB 1: Profile Details */}
             {activeSubTab === 'profile' && (
@@ -424,12 +428,15 @@ export default function SettingsPage() {
                 )}
               </button>
             </div>
-
           </form>
+          ) : (
+            <div className="animate-fade-in">
+              <BillingPage />
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
-
 

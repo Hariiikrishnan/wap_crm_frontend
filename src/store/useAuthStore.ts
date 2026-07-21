@@ -1,19 +1,29 @@
 import { create } from 'zustand';
-import { User, currentUser } from '../mock/mockUsers';
+import Cookies from 'js-cookie';
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  businessName?: string;
+  industry?: string;
+}
 
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isOnboarded: boolean;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (name: string, businessName: string, email: string, industry: string) => Promise<boolean>;
+  register: (name: string, businessName: string, email: string, industry: string, password?: string) => Promise<boolean>;
   logout: () => void;
   updateOnboardingStatus: (onboarded: boolean) => void;
   updateCompanyDetails: (details: Partial<User>) => void;
 }
 
+const API_URL = 'http://localhost:5000/api/v1';
+
 export const useAuthStore = create<AuthState>((set) => {
-  // Load state from localStorage on initialize (if runs in browser)
   let initialUser = null;
   let initialIsAuth = false;
   let initialIsOnboarded = false;
@@ -21,76 +31,102 @@ export const useAuthStore = create<AuthState>((set) => {
   if (typeof window !== 'undefined') {
     try {
       const savedUser = localStorage.getItem('auth_user');
-      const savedIsAuth = localStorage.getItem('auth_isAuthenticated');
+      const token = Cookies.get('token');
       const savedIsOnboarded = localStorage.getItem('auth_isOnboarded');
       
-      if (savedUser) initialUser = JSON.parse(savedUser);
-      if (savedIsAuth) initialIsAuth = savedIsAuth === 'true';
+      if (savedUser && token) {
+        initialUser = JSON.parse(savedUser);
+        initialIsAuth = true;
+      }
       if (savedIsOnboarded) initialIsOnboarded = savedIsOnboarded === 'true';
     } catch {
-      // Ignore localStorage errors in SSR/Next build environments
+      // Ignore
     }
   }
 
   return {
-    user: initialUser || currentUser, // default to admin user for convenience
-    isAuthenticated: initialIsAuth || true, // default authenticated for easy testing
-    isOnboarded: initialIsOnboarded || true, // default onboarded
+    user: initialUser,
+    isAuthenticated: initialIsAuth,
+    isOnboarded: initialIsOnboarded,
     
     login: async (email, password) => {
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      
-      if (email && password) {
-        const mockLoggedInUser: User = {
-          id: 'u1',
-          name: email.split('@')[0],
-          email: email,
-          role: 'admin',
-          businessName: 'Apex Properties',
-          industry: 'Real Estate'
-        };
+      try {
+        const res = await fetch(`${API_URL}/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        const data = await res.json();
         
-        set({ user: mockLoggedInUser, isAuthenticated: true });
-        
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('auth_user', JSON.stringify(mockLoggedInUser));
-          localStorage.setItem('auth_isAuthenticated', 'true');
+        if (res.ok && data.success) {
+          const u = {
+            id: data.data.user.id,
+            name: `${data.data.user.firstName} ${data.data.user.lastName || ''}`.trim(),
+            email: data.data.user.email,
+            role: data.data.user.role,
+            businessName: data.data.organization?.name,
+            industry: data.data.organization?.industry,
+          };
+          
+          Cookies.set('token', data.data.tokens.accessToken, { expires: 7 });
+          localStorage.setItem('auth_user', JSON.stringify(u));
+          
+          set({ user: u, isAuthenticated: true });
+          return true;
         }
-        return true;
+      } catch (error) {
+        console.error('Login error:', error);
       }
       return false;
     },
 
-    register: async (name, businessName, email, industry) => {
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      
-      const newUser: User = {
-        id: `u-${Date.now()}`,
-        name,
-        email,
-        role: 'admin',
-        businessName,
-        industry
-      };
-      
-      set({ user: newUser, isAuthenticated: true, isOnboarded: false });
-      
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('auth_user', JSON.stringify(newUser));
-        localStorage.setItem('auth_isAuthenticated', 'true');
-        localStorage.setItem('auth_isOnboarded', 'false');
+    register: async (name, businessName, email, industry, password = 'Password123!') => {
+      try {
+        const [firstName, ...lastNameParts] = name.split(' ');
+        const lastName = lastNameParts.join(' ');
+        
+        const res = await fetch(`${API_URL}/auth/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            password,
+            firstName,
+            lastName,
+            companyName: businessName,
+            industry,
+          }),
+        });
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+          const u = {
+            id: data.data.user.id,
+            name,
+            email,
+            role: 'owner',
+            businessName,
+            industry,
+          };
+          
+          Cookies.set('token', data.data.tokens.accessToken, { expires: 7 });
+          localStorage.setItem('auth_user', JSON.stringify(u));
+          localStorage.setItem('auth_isOnboarded', 'false');
+          
+          set({ user: u, isAuthenticated: true, isOnboarded: false });
+          return true;
+        }
+      } catch (error) {
+        console.error('Register error:', error);
       }
-      return true;
+      return false;
     },
 
     logout: () => {
+      Cookies.remove('token');
+      localStorage.removeItem('auth_user');
+      localStorage.removeItem('auth_isOnboarded');
       set({ user: null, isAuthenticated: false, isOnboarded: false });
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth_user');
-        localStorage.removeItem('auth_isAuthenticated');
-        localStorage.removeItem('auth_isOnboarded');
-      }
     },
 
     updateOnboardingStatus: (onboarded) => {

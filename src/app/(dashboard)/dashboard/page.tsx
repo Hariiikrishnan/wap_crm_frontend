@@ -31,8 +31,9 @@ import {
   BarChart, 
   Bar 
 } from 'recharts';
-import { mockLeadSources, mockMonthlyTrends } from '@/mock/mockAnalytics';
+import { mockMonthlyTrends } from '@/mock/mockAnalytics';
 import { formatDate } from '@/lib/utils';
+import Cookies from 'js-cookie';
 
 export default function DashboardOverview() {
   const [mounted, setMounted] = useState(false);
@@ -52,17 +53,59 @@ export default function DashboardOverview() {
     assignedUserId: 'u2'
   });
 
+  const [dashboardData, setDashboardData] = useState<{
+    totalLeads: number;
+    qualifiedLeads: number;
+    newLeads: number;
+    hotLeads: number;
+    conversionRate: string;
+  } | null>(null);
+
+  const [leadSources, setLeadSources] = useState<any[]>([]);
+  const [qualifications, setQualifications] = useState<any[]>([]);
+  const [monthlyTrends, setMonthlyTrends] = useState<any[]>([]);
+
   useEffect(() => {
     setMounted(true);
+    fetchDashboardData();
   }, []);
 
-  // Compute live KPIs from Zustand store
-  const totalLeadsCount = leads.length;
-  const qualifiedLeadsCount = leads.filter(l => l.status === 'Qualified' || l.status === 'Won').length;
-  const pendingFollowUpCount = leads.filter(l => l.status === 'Follow-Up' || l.status === 'Contacted').length;
-  const conversionRate = totalLeadsCount > 0 
-    ? Math.round((leads.filter(l => l.status === 'Won').length / totalLeadsCount) * 100) 
-    : 0;
+  const fetchDashboardData = async () => {
+    try {
+      const token = Cookies.get('token');
+      const headers = { 'Authorization': `Bearer ${token}` };
+
+      const [dashRes, sourcesRes, qualRes, trendsRes] = await Promise.all([
+        fetch('http://localhost:5000/api/v1/analytics/dashboard', { headers }),
+        fetch('http://localhost:5000/api/v1/analytics/sources', { headers }),
+        fetch('http://localhost:5000/api/v1/analytics/qualifications', { headers }),
+        fetch('http://localhost:5000/api/v1/analytics/trends', { headers })
+      ]);
+
+      if (dashRes.ok) setDashboardData((await dashRes.json()).data);
+      if (sourcesRes.ok) {
+        const sources = (await sourcesRes.json()).data;
+        const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'];
+        setLeadSources(sources.map((s: any, i: number) => ({ source: s.source, count: s.count, color: colors[i % colors.length] })));
+      }
+      if (qualRes.ok) {
+        const quals = (await qualRes.json()).data;
+        const colors = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444'];
+        setQualifications(quals.map((q: any, i: number) => ({ status: q.status, count: q.count, color: colors[i % colors.length] })));
+      }
+      if (trendsRes.ok) {
+        setMonthlyTrends((await trendsRes.json()).data);
+      }
+    } catch (error) {
+      console.error('Error fetching analytics', error);
+    }
+  };
+
+  // Compute live KPIs from Backend
+  const totalLeadsCount = dashboardData?.totalLeads || leads.length;
+  const qualifiedLeadsCount = dashboardData?.qualifiedLeads || leads.filter(l => l.status === 'Qualified' || l.status === 'Won').length;
+  const hotLeadsCount = dashboardData?.hotLeads || 0;
+  const conversionRate = dashboardData?.conversionRate || (totalLeadsCount > 0 ? Math.round((leads.filter(l => l.status === 'Won').length / totalLeadsCount) * 100) : 0);
 
   // Compile consolidated recent timeline activities across all leads
   const allActivities = leads.flatMap(lead => 
@@ -151,18 +194,18 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        {/* Pending Followups */}
+        {/* Hot Leads */}
         <div className="bg-card border border-border p-5 rounded-xl hover:border-primary/30 transition-all flex flex-col justify-between h-32 relative overflow-hidden group">
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Follow-ups</span>
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Hot Leads</span>
             <div className="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground group-hover:text-primary transition-colors">
-              <Clock className="w-4 h-4" />
+              <Zap className="w-4 h-4 text-orange-500" />
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-foreground leading-none">{pendingFollowUpCount}</h3>
-            <span className="text-[10px] text-amber-500 font-medium flex items-center gap-1 mt-1">
-              Requires outbound action
+            <h3 className="text-2xl font-bold text-foreground leading-none">{hotLeadsCount}</h3>
+            <span className="text-[10px] text-orange-500 font-medium flex items-center gap-1 mt-1">
+              High priority prospects
             </span>
           </div>
         </div>
@@ -192,9 +235,9 @@ export default function DashboardOverview() {
             </div>
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-foreground leading-none">$31,200</h3>
-            <span className="text-[10px] text-primary font-medium flex items-center gap-1 mt-1">
-              <TrendingUp className="w-3.5 h-3.5" /> +18.4% MRR grow
+            <h3 className="text-2xl font-bold text-foreground leading-none">$0</h3>
+            <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1 mt-1">
+              0% MRR grow
             </span>
           </div>
         </div>
@@ -213,7 +256,7 @@ export default function DashboardOverview() {
           </div>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={mockMonthlyTrends} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
+              <AreaChart data={monthlyTrends.length > 0 ? monthlyTrends : mockMonthlyTrends} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.2}/>
@@ -240,33 +283,37 @@ export default function DashboardOverview() {
             <span className="text-[10px] text-muted-foreground">Acquisition Channel Distribution</span>
           </div>
           <div className="h-44 w-full relative flex items-center justify-center my-3">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={mockLeadSources}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={70}
-                  paddingAngle={4}
-                  dataKey="count"
-                >
-                  {mockLeadSources.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', borderColor: '#2e2e2e', fontSize: 11 }} />
-              </PieChart>
-            </ResponsiveContainer>
+            {leadSources.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={leadSources}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={50}
+                    outerRadius={70}
+                    paddingAngle={4}
+                    dataKey="count"
+                  >
+                    {leadSources.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{ backgroundColor: '#0a0a0a', borderColor: '#2e2e2e', fontSize: 11 }} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-muted-foreground text-xs">No data available</div>
+            )}
             <div className="absolute text-center">
               <span className="text-xs font-semibold text-muted-foreground block leading-none">TOTAL</span>
-              <span className="text-lg font-bold text-foreground mt-1 block">830</span>
+              <span className="text-lg font-bold text-foreground mt-1 block">{totalLeadsCount}</span>
             </div>
           </div>
           
           {/* Pie Chart Legend */}
           <div className="grid grid-cols-2 gap-2 text-[10px]">
-            {mockLeadSources.map((item) => (
+            {leadSources.map((item) => (
               <div key={item.source} className="flex items-center gap-2 px-2 py-1 bg-secondary/30 rounded border border-border/40">
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
                 <span className="truncate text-muted-foreground">{item.source}</span>

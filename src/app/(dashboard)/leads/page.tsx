@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useLeadsStore } from '@/store/useLeadsStore';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -25,7 +26,8 @@ import {
   PhoneCall,
   Clock,
   Sparkles,
-  Award
+  Award,
+  Upload
 } from 'lucide-react';
 import { formatDate, cn } from '@/lib/utils';
 import { LeadStatus, Lead } from '@/mock/mockLeads';
@@ -33,7 +35,7 @@ import { mockUsers } from '@/mock/mockUsers';
 
 function LeadsContent() {
   const searchParams = useSearchParams();
-  const { leads, updateLeadStatus, updateLeadOwner, addNoteToLead, logCallForLead, deleteLead } = useLeadsStore();
+  const { leads, updateLeadStatus, updateLeadOwner, addNoteToLead, logCallForLead, deleteLead, fetchLeads } = useLeadsStore();
   const { user } = useAuthStore();
 
   const [activeLeadId, setActiveLeadId] = useState<string | null>(null);
@@ -54,11 +56,13 @@ function LeadsContent() {
   
   // Check for URL query ID parameter to auto-open specific lead details
   useEffect(() => {
+    fetchLeads();
+    
     const urlLeadId = searchParams.get('id');
     if (urlLeadId && leads.some(l => l.id === urlLeadId)) {
       setActiveLeadId(urlLeadId);
     }
-  }, [searchParams, leads]);
+  }, [searchParams, fetchLeads]); // Add fetchLeads as dependency
 
   const activeLead = leads.find(l => l.id === activeLeadId);
 
@@ -66,8 +70,7 @@ function LeadsContent() {
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = lead.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           lead.phone.includes(searchQuery) ||
-                          lead.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          lead.company.toLowerCase().includes(searchQuery.toLowerCase());
+                          lead.email.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesStatus = statusFilter === 'ALL' || lead.status === statusFilter;
     const matchesSource = sourceFilter === 'ALL' || lead.source === sourceFilter;
@@ -117,10 +120,16 @@ function LeadsContent() {
     setCurrentPage(1);
   };
 
+  const getTypeLabel = (score: number) => {
+    if (score >= 80) return "Hot";
+    if (score >= 50) return "Warm";
+    return "Cold";
+  };
+
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-primary border-primary/20 bg-primary/5';
-    if (score >= 50) return 'text-amber-500 border-amber-500/20 bg-amber-500/5';
-    return 'text-muted-foreground border-border bg-muted/40';
+    if (score >= 80) return "bg-red-500/10 text-red-500 border-red-500/20";
+    if (score >= 50) return "bg-orange-500/10 text-orange-500 border-orange-500/20";
+    return "bg-blue-500/10 text-blue-500 border-blue-500/20";
   };
 
   const getScoreBadge = (score: number) => {
@@ -146,9 +155,18 @@ function LeadsContent() {
       {/* Master Leads List (Table View) */}
       <div className={cn("flex-1 space-y-6 transition-all duration-300", activeLeadId ? 'lg:pr-[450px]' : '')}>
         <div className="flex flex-col gap-4 border-b border-border pb-6">
-          <div>
-            <h2 className="text-xl font-bold tracking-tight md:text-2xl">Leads Central</h2>
-            <p className="text-xs text-muted-foreground">Manage and filter your inbound marketing leads.</p>
+          <div className="flex items-start justify-between">
+            <div>
+              <h2 className="text-xl font-bold tracking-tight md:text-2xl">Leads Central</h2>
+              <p className="text-xs text-muted-foreground mt-1">Manage and filter your inbound marketing leads.</p>
+            </div>
+            <Link 
+              href="/leads/upload" 
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground text-sm font-semibold rounded-md hover:bg-primary/90 shadow transition-all hover:-translate-y-0.5"
+            >
+              <Upload className="w-4 h-4" />
+              Upload CSV
+            </Link>
           </div>
 
           {/* Filtering Workspace controls */}
@@ -158,7 +176,7 @@ function LeadsContent() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Search leads name, email, company..."
+                placeholder="Search leads name, email, phone..."
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                 className="w-full pl-9 pr-4 py-2 bg-muted border border-border rounded-lg text-xs text-foreground placeholder-zinc-500 focus:outline-none focus:border-primary"
@@ -219,10 +237,9 @@ function LeadsContent() {
                     onClick={() => handleToggleSort('score')} 
                     className="p-4 font-bold uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
                   >
-                    AI Score {sortBy === 'score' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
+                    Type {sortBy === 'score' ? (sortOrder === 'asc' ? '↑' : '↓') : ''}
                   </th>
                   <th className="p-4 font-bold uppercase tracking-wider">Status</th>
-                  <th className="p-4 font-bold uppercase tracking-wider">Owner</th>
                   <th 
                     onClick={() => handleToggleSort('createdAt')} 
                     className="p-4 font-bold uppercase tracking-wider cursor-pointer hover:text-foreground transition-colors"
@@ -234,7 +251,6 @@ function LeadsContent() {
               <tbody className="divide-y divide-border/60">
                 {paginatedLeads.length > 0 ? (
                   paginatedLeads.map((lead) => {
-                    const assignee = mockUsers.find(u => u.id === lead.assignedUserId);
                     const isSelected = lead.id === activeLeadId;
                     return (
                       <tr 
@@ -247,7 +263,6 @@ function LeadsContent() {
                       >
                         <td className="p-4">
                           <span className="font-bold text-foreground block">{lead.name}</span>
-                          <span className="text-[10px] text-muted-foreground">{lead.company}</span>
                         </td>
                         <td className="p-4 text-muted-foreground font-mono">{lead.phone}</td>
                         <td className="p-4">
@@ -256,23 +271,15 @@ function LeadsContent() {
                           </span>
                         </td>
                         <td className="p-4">
-                          <span className={cn("px-2 py-0.5 border rounded-full text-[10px] font-bold inline-flex items-center gap-1", getScoreColor(lead.score))}>
+                          <span className={cn("px-2 py-0.5 border rounded-full text-[10px] font-bold inline-flex items-center gap-1 uppercase", getScoreColor(lead.score))}>
                             <Zap className="w-3 h-3 fill-current shrink-0" />
-                            {lead.score}
+                            {getTypeLabel(lead.score)}
                           </span>
                         </td>
                         <td className="p-4">
                           <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold border", getStatusBadge(lead.status))}>
                             {lead.status}
                           </span>
-                        </td>
-                        <td className="p-4 text-muted-foreground">
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-4 h-4 rounded-full bg-primary/10 flex items-center justify-center text-primary text-[8px] font-bold uppercase">
-                              {assignee?.name.charAt(0)}
-                            </div>
-                            <span className="text-[11px] font-medium">{assignee?.name}</span>
-                          </div>
                         </td>
                         <td className="p-4 text-muted-foreground font-mono text-[10px]">
                           {formatDate(lead.createdAt)}
@@ -282,7 +289,7 @@ function LeadsContent() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan={7} className="text-center py-16">
+                    <td colSpan={6} className="text-center py-16">
                       <div className="max-w-sm mx-auto space-y-3">
                         <FileText className="w-8 h-8 text-zinc-700 mx-auto" />
                         <span className="font-semibold text-sm text-muted-foreground block">No leads match filters</span>
@@ -335,7 +342,6 @@ function LeadsContent() {
                   {getScoreBadge(activeLead.score).label}
                 </span>
               </div>
-              <p className="text-[10px] text-muted-foreground mt-0.5">{activeLead.company || 'Private Owner'}</p>
             </div>
             <button 
               onClick={() => setActiveLeadId(null)}
@@ -348,7 +354,7 @@ function LeadsContent() {
           {/* Drawer Body Scroll */}
           <div className="flex-1 overflow-y-auto p-4 space-y-6">
             {/* Quick Actions Panel */}
-            <div className="grid grid-cols-2 gap-2 bg-secondary/10 p-3 rounded-lg border border-border/40">
+            <div className="bg-secondary/10 p-3 rounded-lg border border-border/40">
               {/* Lead Status Selector */}
               <div>
                 <label className="text-[8px] uppercase tracking-wider text-muted-foreground font-bold block mb-1">Status</label>
@@ -365,20 +371,6 @@ function LeadsContent() {
                   <option value="Lost">Lost</option>
                 </select>
               </div>
-
-              {/* Owner Reassign Selector */}
-              <div>
-                <label className="text-[8px] uppercase tracking-wider text-muted-foreground font-bold block mb-1">Assign Owner</label>
-                <select
-                  value={activeLead.assignedUserId}
-                  onChange={(e) => updateLeadOwner(activeLead.id, e.target.value)}
-                  className="w-full bg-muted border border-border rounded p-1.5 text-[11px] text-muted-foreground focus:outline-none"
-                >
-                  {mockUsers.map(u => (
-                    <option key={u.id} value={u.id}>{u.name}</option>
-                  ))}
-                </select>
-              </div>
             </div>
 
             {/* Profile Info Details */}
@@ -393,10 +385,7 @@ function LeadsContent() {
                   <Mail className="w-3.5 h-3.5 text-muted-foreground" />
                   <span className="truncate">{activeLead.email}</span>
                 </div>
-                <div className="flex items-center gap-2.5 text-muted-foreground">
-                  <Building className="w-3.5 h-3.5 text-muted-foreground" />
-                  <span>{activeLead.company || 'Not Specified'}</span>
-                </div>
+
                 {activeLead.budget && (
                   <div className="flex items-center gap-2.5 text-muted-foreground font-semibold text-primary">
                     <Award className="w-3.5 h-3.5 text-primary shrink-0" />

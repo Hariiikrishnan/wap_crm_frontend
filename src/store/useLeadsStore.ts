@@ -10,6 +10,7 @@ interface LeadsState {
   logCallForLead: (leadId: string, duration: string, description: string, author: string) => void;
   deleteLead: (leadId: string) => void;
   getLeadById: (leadId: string) => Lead | undefined;
+  fetchLeads: () => Promise<void>;
 }
 
 export const useLeadsStore = create<LeadsState>((set, get) => {
@@ -38,6 +39,49 @@ export const useLeadsStore = create<LeadsState>((set, get) => {
 
   return {
     leads: initialLeads,
+
+    fetchLeads: async () => {
+      try {
+        let Cookies;
+        if (typeof window !== 'undefined') {
+          Cookies = require('js-cookie');
+        }
+        const token = Cookies ? Cookies.get('token') : null;
+        if (!token) return;
+        
+        const res = await fetch('http://localhost:5000/api/v1/leads?limit=100', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+          const backendLeads = data.data.data;
+          const mappedLeads: Lead[] = backendLeads.map((bl: any) => ({
+            id: bl.id,
+            name: bl.name,
+            phone: bl.phone || 'N/A',
+            email: bl.email || 'N/A',
+            company: '',
+            source: bl.leadSource || 'CSV Upload',
+            score: bl.leadScore || 0,
+            status: bl.currentStatus || 'New',
+            assignedUserId: bl.assignments?.[0]?.userId || bl.createdById || '',
+            createdAt: bl.createdAt,
+            budget: bl.priority,
+            requirements: bl.qualificationStatus,
+            qaList: [],
+            notes: [],
+            callLogs: [],
+            timeline: []
+          }));
+          
+          set({ leads: mappedLeads });
+          saveLeads(mappedLeads);
+        }
+      } catch (err) {
+        console.error('Failed to fetch leads', err);
+      }
+    },
 
     addLead: (leadData) => {
       const newLead: Lead = {
