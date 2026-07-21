@@ -75,11 +75,12 @@ export default function DashboardOverview() {
       const token = Cookies.get('token');
       const headers = { 'Authorization': `Bearer ${token}` };
 
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1';
       const [dashRes, sourcesRes, qualRes, trendsRes] = await Promise.all([
-        fetch('http://localhost:5000/api/v1/analytics/dashboard', { headers }),
-        fetch('http://localhost:5000/api/v1/analytics/sources', { headers }),
-        fetch('http://localhost:5000/api/v1/analytics/qualifications', { headers }),
-        fetch('http://localhost:5000/api/v1/analytics/trends', { headers })
+        fetch(`${API_URL}/analytics/dashboard`, { headers }),
+        fetch(`${API_URL}/analytics/sources`, { headers }),
+        fetch(`${API_URL}/analytics/qualifications`, { headers }),
+        fetch(`${API_URL}/analytics/trends`, { headers })
       ]);
 
       if (dashRes.ok) setDashboardData((await dashRes.json()).data);

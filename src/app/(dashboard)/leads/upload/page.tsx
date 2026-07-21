@@ -59,7 +59,7 @@ export default function LeadsUploadPage() {
 
     try {
       const token = Cookies.get('token');
-      const res = await fetch('http://localhost:5000/api/v1/leads/upload-csv', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1'}/leads/upload-csv`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
