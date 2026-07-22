@@ -28,6 +28,12 @@ export default function BillingPage() {
   };
 
   const [billingDetails, setBillingDetails] = useState(defaultUsageMetrics);
+
+  const plans = [
+    { name: 'Starter', price: 4999, limit: '500 Leads /mo', messages: '2,000 messages', features: ['1 CRM pipeline', '2 seats access', 'Basic AI reply template'] },
+    { name: 'Professional', price: 12999, limit: '2,500 Leads /mo', messages: '10,000 messages', features: ['Unlimited pipeline boards', 'Multi-number broadcasts', 'Advanced qualification AI engine', 'API sync webhooks', 'Priority SLA support'] },
+    { name: 'Enterprise', price: 39999, limit: 'Unlimited Leads /mo', messages: 'Unlimited messages', features: ['Custom AI Model training', 'Dedicated account sync', '99.9% Uptime agreement', 'Custom data endpoints', 'Onsite team training'] }
+  ];
   const handleOpenCheckout = (planName: string, price: number) => {
     const priceMap: Record<string, number> = {
       'Starter': 499900,
