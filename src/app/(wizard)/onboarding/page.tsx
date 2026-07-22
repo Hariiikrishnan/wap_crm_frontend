@@ -69,7 +69,7 @@ export default function OnboardingWizard() {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_xyz', // Assuming user provides this
         amount: priceMap[selectedPlan].toString(), // Dynamic amount based on plan (in paise)
         currency: "INR",
-        name: "WAP CRM",
+        name: "Green Pilot",
         description: `${selectedPlan} Plan Subscription`,
         handler: function (response: any) {
           // Success
@@ -129,7 +129,7 @@ export default function OnboardingWizard() {
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
           <Sparkles className="w-4 h-4 text-foreground" />
         </div>
-        <span className="">WA<span className="text-primary">CRM</span></span>
+        <span className="">Green<span className="text-primary">Pilot</span></span>
       </div>
 
       {/* Main Container */}
