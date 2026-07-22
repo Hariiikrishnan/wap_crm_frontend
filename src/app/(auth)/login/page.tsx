@@ -36,11 +36,11 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const result = await login(values.email, values.password);
-      if (result.success) {
+      const success = await login(values.email, values.password);
+      if (success) {
         router.push('/dashboard');
       } else {
-        setError(result.message || 'Invalid credentials.');
+        setError('Invalid credentials. Try admin@whatsappcrm.com / password');
       }
     } catch {
       setError('An error occurred. Please try again.');
@@ -56,7 +56,7 @@ export default function LoginPage() {
         <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
           <Sparkles className="w-5 h-5 text-foreground" />
         </div>
-        <span className="">WA<span className="text-primary">CRM</span></span>
+        <span className="">Green<span className="text-primary">Pilot</span></span>
       </Link>
 
       <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-2xl relative overflow-hidden">
@@ -136,9 +136,9 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <div className="mt-8 text-center text-[10px] text-muted-foreground">
+      {/* <div className="mt-8 text-center text-[10px] text-muted-foreground">
         Demo Tip: Enter any email and a 6-character password to sign in.
-      </div>
+      </div> */}
     </div>
   );
 }
