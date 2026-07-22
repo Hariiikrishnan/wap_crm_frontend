@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Script from 'next/script';
 
 import { 
   Check, 
@@ -85,6 +86,7 @@ export default function BillingPage() {
 
   return (
     <div className="space-y-8 pb-12">
+      <Script src="https://checkout.razorpay.com/v1/checkout.js" strategy="lazyOnload" />
       {/* Page Header */}
       <div className="border-b border-border pb-6">
         <h2 className="text-xl font-bold tracking-tight md:text-2xl">Billing & Subscriptions</h2>
