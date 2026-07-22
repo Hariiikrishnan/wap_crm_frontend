@@ -36,11 +36,11 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
     try {
-      const success = await login(values.email, values.password);
-      if (success) {
+      const result = await login(values.email, values.password);
+      if (result.success) {
         router.push('/dashboard');
       } else {
-        setError('Invalid credentials. Try admin@whatsappcrm.com / password');
+        setError(result.message || 'Invalid credentials.');
       }
     } catch {
       setError('An error occurred. Please try again.');
