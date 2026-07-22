@@ -14,7 +14,7 @@ interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
   isOnboarded: boolean;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<{success: boolean, message?: string}>;
   register: (name: string, businessName: string, email: string, industry: string, password?: string) => Promise<boolean>;
   logout: () => void;
   updateOnboardingStatus: (onboarded: boolean) => void;
@@ -68,16 +68,18 @@ export const useAuthStore = create<AuthState>((set) => {
             industry: data.data.organization?.industry,
           };
           
-          Cookies.set('token', data.data.tokens.accessToken, { expires: 7 });
+          Cookies.set('token', data.data.tokens.accessToken, { expires: 7, path: '/' });
           localStorage.setItem('auth_user', JSON.stringify(u));
           
           set({ user: u, isAuthenticated: true });
-          return true;
+          return { success: true };
         }
+        
+        return { success: false, message: data.message || 'Invalid credentials. Please try again.' };
       } catch (error) {
         console.error('Login error:', error);
+        return { success: false, message: 'Network error. Please check your connection.' };
       }
-      return false;
     },
 
     register: async (name, businessName, email, industry, password = 'Password123!') => {
@@ -123,7 +125,7 @@ export const useAuthStore = create<AuthState>((set) => {
     },
 
     logout: () => {
-      Cookies.remove('token');
+      Cookies.remove('token', { path: '/' });
       localStorage.removeItem('auth_user');
       localStorage.removeItem('auth_isOnboarded');
       set({ user: null, isAuthenticated: false, isOnboarded: false });
