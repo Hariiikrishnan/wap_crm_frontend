@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { mockUsageMetrics } from '@/mock/mockAnalytics';
+
 import { 
   Check, 
   CreditCard, 
@@ -16,46 +16,61 @@ import {
 import { cn } from '@/lib/utils';
 
 export default function BillingPage() {
-  const [billingDetails, setBillingDetails] = useState(mockUsageMetrics);
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [selectedUpgradePlan, setSelectedUpgradePlan] = useState<{ name: string; price: number } | null>(null);
-  
-  // Checkout Form State
-  const [loadingCheckout, setLoadingCheckout] = useState(false);
-  const [cardForm, setCardForm] = useState({ number: '', expiry: '', cvc: '' });
-
-  const plans = [
-    { name: 'Starter', price: 4999, limit: '500 Leads /mo', messages: '2,000 messages', features: ['1 CRM pipeline', '2 seats access', 'Basic AI reply template'] },
-    { name: 'Professional', price: 12999, limit: '2,500 Leads /mo', messages: '10,000 messages', features: ['Unlimited pipeline boards', 'Multi-number broadcasts', 'Advanced qualification AI engine', 'API sync webhooks', 'Priority SLA support'] },
-    { name: 'Enterprise', price: 39999, limit: 'Unlimited Leads /mo', messages: 'Unlimited messages', features: ['Custom AI Model training', 'Dedicated account sync', '99.9% Uptime agreement', 'Custom data endpoints', 'Onsite team training'] }
-  ];
-
-  const handleOpenCheckout = (planName: string, price: number) => {
-    setSelectedUpgradePlan({ name: planName, price });
-    setShowCheckout(true);
+  const defaultUsageMetrics = {
+    activePlan: 'Starter',
+    monthlyLeadsLimit: 500,
+    monthlyLeadsUsed: 0,
+    whatsAppMessagesLimit: 2000,
+    whatsAppMessagesUsed: 0,
+    billingCycleEnd: 'N/A',
+    costPerAdditionalLead: 0.10,
+    subscriptionPrice: 4999
   };
 
-  const handlePay = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedUpgradePlan) return;
+  const [billingDetails, setBillingDetails] = useState(defaultUsageMetrics);
+  const handleOpenCheckout = (planName: string, price: number) => {
+    const priceMap: Record<string, number> = {
+      'Starter': 499900,
+      'Professional': 1299900,
+      'Enterprise': 3999900
+    };
 
-    setLoadingCheckout(true);
-    setTimeout(() => {
-      setLoadingCheckout(false);
-      setShowCheckout(false);
-      
-      // Update billing state
-      setBillingDetails({
-        ...billingDetails,
-        activePlan: selectedUpgradePlan.name,
-        subscriptionPrice: selectedUpgradePlan.price,
-        monthlyLeadsLimit: selectedUpgradePlan.name === 'Starter' ? 500 : selectedUpgradePlan.name === 'Professional' ? 2500 : 999999,
-        whatsAppMessagesLimit: selectedUpgradePlan.name === 'Starter' ? 2000 : selectedUpgradePlan.name === 'Professional' ? 10000 : 999999,
-      });
+    const options = {
+      key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_xyz',
+      amount: priceMap[planName].toString(),
+      currency: "INR",
+      name: "Green Pilot",
+      description: `Upgrade to ${planName} Plan`,
+      handler: function (response: any) {
+        // Update billing state on success
+        setBillingDetails({
+          ...billingDetails,
+          activePlan: planName,
+          subscriptionPrice: price,
+          monthlyLeadsLimit: planName === 'Starter' ? 500 : planName === 'Professional' ? 2500 : 999999,
+          whatsAppMessagesLimit: planName === 'Starter' ? 2000 : planName === 'Professional' ? 10000 : 999999,
+        });
+        alert(`Successfully upgraded to the ${planName} plan!`);
+      },
+      prefill: {
+        name: "Admin User", // optionally fetch from auth store
+        email: "admin@greenpilot.in",
+      },
+      theme: { color: "#22c55e" },
+      modal: {
+        ondismiss: function() {
+          // Modal closed
+        }
+      }
+    };
 
-      setCardForm({ number: '', expiry: '', cvc: '' });
-      alert(`Successfully upgraded to the ${selectedUpgradePlan.name} plan!`);
-    }, 1500);
+    try {
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error("Razorpay SDK not loaded", err);
+      alert("Payment gateway could not be loaded. Please check your connection and try again.");
+    }
   };
 
   // Percent calculation
@@ -199,82 +214,7 @@ export default function BillingPage() {
         </div>
       </div>
 
-      {/* Checkout Modal popup overlay */}
-      {showCheckout && selectedUpgradePlan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/85 backdrop-blur-sm px-4">
-          <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full relative animate-fade-in space-y-4">
-            <div>
-              <h3 className="text-sm font-bold flex items-center gap-1.5 text-foreground">
-                <Lock className="w-4 h-4 text-primary" />
-                <span>Secure Checkout Simulator</span>
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">Upgrading workspace to the **{selectedUpgradePlan.name} Plan**.</p>
-            </div>
 
-            <div className="bg-muted/60 p-3 rounded-lg border border-border/40 text-xs flex justify-between font-semibold">
-              <span className="text-muted-foreground">Monthly Plan Charge</span>
-              <span className="text-foreground">${selectedUpgradePlan.price}.00 / mo</span>
-            </div>
-
-            <form onSubmit={handlePay} className="space-y-3.5">
-              <div>
-                <label className="text-[9px] uppercase font-bold text-muted-foreground block mb-1">Card Number</label>
-                <input 
-                  type="text" 
-                  required
-                  placeholder="4242 4242 4242 4242"
-                  value={cardForm.number}
-                  onChange={(e) => setCardForm({ ...cardForm, number: e.target.value })}
-                  className="w-full bg-muted border border-border rounded p-2 text-xs text-foreground focus:outline-none focus:border-primary"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-[9px] uppercase font-bold text-muted-foreground block mb-1">Expiry Date</label>
-                  <input 
-                    type="text" 
-                    required
-                    placeholder="MM/YY"
-                    value={cardForm.expiry}
-                    onChange={(e) => setCardForm({ ...cardForm, expiry: e.target.value })}
-                    className="w-full bg-muted border border-border rounded p-2 text-xs text-foreground focus:outline-none focus:border-primary"
-                  />
-                </div>
-                <div>
-                  <label className="text-[9px] uppercase font-bold text-muted-foreground block mb-1">CVC Code</label>
-                  <input 
-                    type="text" 
-                    required
-                    placeholder="123"
-                    value={cardForm.cvc}
-                    onChange={(e) => setCardForm({ ...cardForm, cvc: e.target.value })}
-                    className="w-full bg-muted border border-border rounded p-2 text-xs text-foreground focus:outline-none focus:border-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="flex justify-end gap-3 mt-6 pt-3 border-t border-border">
-                <button
-                  type="button"
-                  onClick={() => setShowCheckout(false)}
-                  className="px-4 py-2 border border-border text-xs font-semibold rounded text-muted-foreground hover:text-foreground"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loadingCheckout}
-                  className="px-4 py-2 bg-primary text-black font-semibold rounded text-xs hover:bg-primary/90 disabled:opacity-50 flex items-center gap-1.5"
-                >
-                  {loadingCheckout && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Confirm Mock Payment</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

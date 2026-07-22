@@ -84,6 +84,11 @@ export default function OnboardingWizard() {
         },
         theme: {
           color: "#22c55e"
+        },
+        modal: {
+          ondismiss: function() {
+            setLoading(false);
+          }
         }
       };
 
@@ -97,7 +102,7 @@ export default function OnboardingWizard() {
       } catch (err) {
         console.error("Razorpay SDK not loaded", err);
         setLoading(false);
-        setCurrentStep(4); // Fallback for dev without script
+        alert("Payment gateway could not be loaded. Please check your connection and try again.");
       }
     }
   };
