@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
         <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
           <Sparkles className="w-5 h-5 text-foreground" />
         </div>
-        <span className="">WA<span className="text-primary">CRM</span></span>
+        <span className="">Green<span className="text-primary">Pilot</span></span>
       </Link>
 
       <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-2xl relative overflow-hidden">
@@ -56,8 +56,8 @@ export default function ForgotPasswordPage() {
               We have sent a simulated password recovery link to your email address.
             </p>
             <div className="mt-8">
-              <Link 
-                href="/login" 
+              <Link
+                href="/login"
                 className="bg-primary hover:bg-primary/95 text-foreground text-xs font-semibold px-6 py-2.5 rounded-lg transition-colors"
               >
                 Return to sign in

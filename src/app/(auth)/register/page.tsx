@@ -76,7 +76,7 @@ export default function RegisterPage() {
         <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center">
           <Sparkles className="w-5 h-5 text-foreground" />
         </div>
-        <span className="">WA<span className="text-primary">CRM</span></span>
+        <span className="">Green<span className="text-primary">Pilot</span></span>
       </Link>
 
       <div className="w-full max-w-md bg-card border border-border rounded-2xl p-8 shadow-2xl relative overflow-hidden">
