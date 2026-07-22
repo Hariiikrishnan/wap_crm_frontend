@@ -3,14 +3,14 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { 
-  ArrowRight, 
-  Check, 
-  MessageSquare, 
-  Zap, 
-  Sparkles, 
-  TrendingUp, 
-  ShieldCheck, 
+import {
+  ArrowRight,
+  Check,
+  MessageSquare,
+  Zap,
+  Sparkles,
+  TrendingUp,
+  ShieldCheck,
   Database,
   Calendar,
   Layers,
@@ -54,14 +54,14 @@ export default function LandingPage() {
           </nav>
 
           <div className="flex items-center gap-4">
-            <Link 
-              href="/login" 
+            <Link
+              href="/login"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Sign In
             </Link>
-            <Link 
-              href="/register" 
+            <Link
+              href="/register"
               className="bg-primary hover:bg-primary/90 text-foreground text-xs font-semibold px-4 py-2 rounded-lg transition-colors shadow-lg shadow-primary/20"
             >
               Get Started
@@ -92,14 +92,14 @@ export default function LandingPage() {
           </p>
 
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link 
-              href="/register" 
+            <Link
+              href="/register"
               className="w-full sm:w-auto bg-primary hover:bg-primary/95 text-foreground font-medium px-8 py-3 rounded-lg flex items-center justify-center gap-2 group transition-all shadow-xl shadow-primary/20"
             >
               <span>Get Started Free</span>
               <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
             </Link>
-            <button 
+            <button
               onClick={() => setShowDemoModal(true)}
               className="w-full sm:w-auto border border-border hover:border-zinc-500 bg-muted/30 hover:bg-muted/60 text-foreground font-medium px-8 py-3 rounded-lg flex items-center justify-center gap-2 transition-all"
             >
@@ -117,7 +117,7 @@ export default function LandingPage() {
               <div className="w-3 h-3 rounded-full bg-green-500/80" />
               <div className="text-[10px] text-muted-foreground font-mono ml-4 truncate">https://app.greenpilot.io/dashboard</div>
             </div>
-            
+
             {/* Layout simulation grid */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-3 p-4 bg-background/40 text-left">
               {/* Left pane stats */}
@@ -127,7 +127,7 @@ export default function LandingPage() {
                 <span className="text-xs text-primary font-medium flex items-center gap-1 mt-1">
                   <TrendingUp className="w-3 h-3" /> +24% this month
                 </span>
-                
+
                 <div className="border-t border-border/80 my-4" />
 
                 <span className="text-[10px] text-muted-foreground uppercase tracking-widest font-semibold block">Qualified Rate</span>
@@ -172,7 +172,7 @@ export default function LandingPage() {
               {/* Right column Kanban shortcut */}
               <div className="border border-border/80 rounded-xl p-4 bg-muted/20 backdrop-blur space-y-3">
                 <span className="text-xs font-semibold text-muted-foreground block border-b border-border/80 pb-1.5">Lead Funnel Stage</span>
-                
+
                 <div className="space-y-2">
                   <div className="bg-muted border border-border p-2 rounded-lg text-xs flex justify-between items-center opacity-40">
                     <span className="font-medium text-muted-foreground">New Lead</span>
@@ -347,7 +347,7 @@ export default function LandingPage() {
             <div className="border border-border rounded-xl p-8 bg-muted/20 backdrop-blur flex flex-col justify-between">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Starter</span>
-                <span className="text-3xl font-bold">$49<span className="text-xs text-muted-foreground font-normal">/month</span></span>
+                <span className="text-3xl font-bold">₹4,999<span className="text-xs text-muted-foreground font-normal">/month</span></span>
                 <p className="text-xs text-muted-foreground mt-2">Ideal for sole proprietorships starting automation.</p>
                 <div className="border-t border-border my-6" />
                 <ul className="space-y-3.5 text-xs text-muted-foreground">
@@ -369,8 +369,8 @@ export default function LandingPage() {
                   </li>
                 </ul>
               </div>
-              <Link 
-                href="/register" 
+              <Link
+                href="/register"
                 className="mt-8 bg-muted border border-border hover:border-border text-foreground font-medium py-2 rounded-lg text-center text-xs transition-colors"
               >
                 Choose Starter
@@ -382,7 +382,7 @@ export default function LandingPage() {
               <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-foreground text-[10px] font-extrabold uppercase px-3 py-1 rounded-full">Most Popular</span>
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-primary block mb-2">Professional</span>
-                <span className="text-3xl font-bold">$129<span className="text-xs text-muted-foreground font-normal">/month</span></span>
+                <span className="text-3xl font-bold">₹12,999<span className="text-xs text-muted-foreground font-normal">/month</span></span>
                 <p className="text-xs text-muted-foreground mt-2">Perfect for growing sales departments needing rich CRM details.</p>
                 <div className="border-t border-border my-6" />
                 <ul className="space-y-3.5 text-xs text-muted-foreground font-medium">
@@ -408,8 +408,8 @@ export default function LandingPage() {
                   </li>
                 </ul>
               </div>
-              <Link 
-                href="/register" 
+              <Link
+                href="/register"
                 className="mt-8 bg-primary hover:bg-primary/95 text-foreground font-semibold py-2 rounded-lg text-center text-xs transition-colors shadow-lg shadow-primary/10"
               >
                 Choose Professional
@@ -420,7 +420,7 @@ export default function LandingPage() {
             <div className="border border-border rounded-xl p-8 bg-muted/20 backdrop-blur flex flex-col justify-between">
               <div>
                 <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground block mb-2">Enterprise</span>
-                <span className="text-3xl font-bold">$399<span className="text-xs text-muted-foreground font-normal">/month</span></span>
+                <span className="text-3xl font-bold">₹39,999<span className="text-xs text-muted-foreground font-normal">/month</span></span>
                 <p className="text-xs text-muted-foreground mt-2">Tailored for large firms demanding high volumes and uptime SLA.</p>
                 <div className="border-t border-border my-6" />
                 <ul className="space-y-3.5 text-xs text-muted-foreground">
@@ -442,8 +442,8 @@ export default function LandingPage() {
                   </li>
                 </ul>
               </div>
-              <Link 
-                href="/register" 
+              <Link
+                href="/register"
                 className="mt-8 bg-muted border border-border hover:border-border text-foreground font-medium py-2 rounded-lg text-center text-xs transition-colors"
               >
                 Choose Enterprise
@@ -513,7 +513,7 @@ export default function LandingPage() {
             <Image src="/logo.png" alt="Green Pilot Logo" width={24} height={24} className="rounded" />
             <span className="font-semibold text-foreground">Green Pilot SaaS Portal</span>
           </div>
-          <p>© 2026 Green Pilot. All rights reserved. Built as a mock SaaS frontend workspace.</p>
+          <p>© 2026 Green Pilot. All rights reserved.</p>
           <div className="flex gap-4">
             <a href="#" className="hover:text-muted-foreground">Privacy Policy</a>
             <a href="#" className="hover:text-muted-foreground">Terms of Service</a>
@@ -525,21 +525,21 @@ export default function LandingPage() {
       {showDemoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm px-4">
           <div className="bg-card border border-border rounded-xl p-6 max-w-sm w-full relative animate-fade-in">
-            <button 
+            <button
               onClick={() => setShowDemoModal(false)}
               className="absolute top-4 right-4 text-muted-foreground hover:text-foreground"
             >
               <X className="w-5 h-5" />
             </button>
-            
+
             <h3 className="text-lg font-bold">Schedule an AI CRM Demo</h3>
             <p className="text-xs text-muted-foreground mt-1">Select a comfortable slot for a live walk-through with our team.</p>
 
             <form onSubmit={handleBookDemo} className="mt-4 space-y-4">
               <div>
                 <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Your Name</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   required
                   value={demoForm.name}
                   onChange={(e) => setDemoForm({ ...demoForm, name: e.target.value })}
@@ -549,8 +549,8 @@ export default function LandingPage() {
               </div>
               <div>
                 <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Business Email</label>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   required
                   value={demoForm.email}
                   onChange={(e) => setDemoForm({ ...demoForm, email: e.target.value })}
@@ -560,8 +560,8 @@ export default function LandingPage() {
               </div>
               <div>
                 <label className="text-[10px] uppercase font-bold text-muted-foreground block mb-1">Select Date</label>
-                <input 
-                  type="date" 
+                <input
+                  type="date"
                   required
                   value={demoForm.date}
                   onChange={(e) => setDemoForm({ ...demoForm, date: e.target.value })}

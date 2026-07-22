@@ -46,9 +46,9 @@ export default function OnboardingWizard() {
 
   // Subscription plans
   const subscriptionPlans = [
-    { id: 'Starter', name: 'Starter', price: '$49', limit: '500 leads /mo' },
-    { id: 'Professional', name: 'Professional', price: '$129', limit: '2,500 leads /mo' },
-    { id: 'Enterprise', name: 'Enterprise', price: '$399', limit: 'Unlimited leads' }
+    { id: 'Starter', name: 'Starter', price: '₹4,999', limit: '500 leads /mo' },
+    { id: 'Professional', name: 'Professional', price: '₹12,999', limit: '2,500 leads /mo' },
+    { id: 'Enterprise', name: 'Enterprise', price: '₹39,999', limit: 'Unlimited leads' }
   ];
 
   const handleNext = () => {
@@ -59,18 +59,23 @@ export default function OnboardingWizard() {
       setCurrentStep(3);
     } else if (currentStep === 3) {
       setLoading(true);
-      
+      const priceMap: Record<string, number> = {
+        'Starter': 499900,
+        'Professional': 1299900,
+        'Enterprise': 3999900
+      };
+
       const options = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_xyz', // Assuming user provides this
-        amount: "100", // 1 Rs
+        amount: priceMap[selectedPlan].toString(), // Dynamic amount based on plan (in paise)
         currency: "INR",
         name: "WAP CRM",
-        description: "Onboarding Payment",
+        description: `${selectedPlan} Plan Subscription`,
         handler: function (response: any) {
           // Success
           setLoading(false);
           setCurrentStep(4);
-          
+
           // Optionally notify backend here about payment success
         },
         prefill: {
@@ -81,7 +86,7 @@ export default function OnboardingWizard() {
           color: "#22c55e"
         }
       };
-      
+
       try {
         const rzp = new (window as any).Razorpay(options);
         rzp.open();
@@ -142,10 +147,10 @@ export default function OnboardingWizard() {
             return (
               <div key={item.step} className="flex flex-col items-center gap-1.5 flex-1 relative">
                 <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${isCompleted
-                    ? 'bg-primary border-primary text-black font-bold'
-                    : isActive
-                      ? 'border-primary text-primary bg-primary/5 font-bold shadow-lg shadow-primary/10'
-                      : 'border-border text-muted-foreground'
+                  ? 'bg-primary border-primary text-black font-bold'
+                  : isActive
+                    ? 'border-primary text-primary bg-primary/5 font-bold shadow-lg shadow-primary/10'
+                    : 'border-border text-muted-foreground'
                   }`}>
                   <item.icon className="w-4 h-4" />
                 </div>
@@ -222,8 +227,8 @@ export default function OnboardingWizard() {
                   <div
                     key={source.id}
                     className={`border rounded-xl p-4 flex items-center justify-between transition-colors ${isConnected
-                        ? 'border-primary/50 bg-primary/5'
-                        : 'border-border bg-muted/30'
+                      ? 'border-primary/50 bg-primary/5'
+                      : 'border-border bg-muted/30'
                       }`}
                   >
                     <div>
@@ -240,8 +245,8 @@ export default function OnboardingWizard() {
                       <button
                         onClick={() => handleToggleSource(source.id)}
                         className={`text-[10px] font-bold px-3 py-1.5 rounded transition-colors ${isConnected
-                            ? 'bg-muted text-primary border border-primary/30 hover:bg-muted/80'
-                            : 'bg-primary hover:bg-primary/95 text-black'
+                          ? 'bg-muted text-primary border border-primary/30 hover:bg-muted/80'
+                          : 'bg-primary hover:bg-primary/95 text-black'
                           }`}
                       >
                         {isConnected ? 'Disconnect' : 'Connect'}
@@ -276,8 +281,8 @@ export default function OnboardingWizard() {
                       key={plan.id}
                       onClick={() => setSelectedPlan(plan.id)}
                       className={`border rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all ${isSelected
-                          ? 'border-primary bg-primary/5 shadow-lg shadow-primary/5'
-                          : 'border-border bg-muted/30 hover:border-zinc-700'
+                        ? 'border-primary bg-primary/5 shadow-lg shadow-primary/5'
+                        : 'border-border bg-muted/30 hover:border-zinc-700'
                         }`}
                     >
                       <div className="flex items-center gap-3">
@@ -366,9 +371,9 @@ export default function OnboardingWizard() {
         </div>
       </div>
 
-      <div className="text-center text-[10px] text-muted-foreground">
+      {/* <div className="text-center text-[10px] text-muted-foreground">
         Secured mock onboarding tunnel. No actual subscription charges will apply.
-      </div>
+      </div> */}
     </div>
   );
 }
